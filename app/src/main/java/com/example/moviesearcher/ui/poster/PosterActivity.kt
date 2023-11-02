@@ -1,9 +1,10 @@
-package com.example.moviesearcher
+package com.example.moviesearcher.ui.poster
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import com.bumptech.glide.Glide
+import com.example.moviesearcher.R
 
 class PosterActivity : AppCompatActivity() {
     private lateinit var poster: ImageView

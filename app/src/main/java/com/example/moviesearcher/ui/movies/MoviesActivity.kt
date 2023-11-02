@@ -1,4 +1,4 @@
-package com.example.moviesearcher
+package com.example.moviesearcher.ui.movies
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -12,11 +12,14 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.moviesearcher.models.Movie
-import com.example.moviesearcher.models.MoviesSearchResponse
+import com.example.moviesearcher.ui.poster.PosterActivity
+import com.example.moviesearcher.R
+import com.example.moviesearcher.domain.models.Movie
+import com.example.moviesearcher.data.dto.MoviesSearchResponse
+import com.example.moviesearcher.data.network.ApiService
+import com.example.moviesearcher.domain.Creator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -25,19 +28,19 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MoviesActivity : AppCompatActivity() {
 
-    private val baseUrl = "https://api.kinopoisk.dev"
+    //private val baseUrl = "https://api.kinopoisk.dev"
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
     }
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(baseUrl)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+    //private val retrofit = Retrofit.Builder()
+    //    .baseUrl(baseUrl)
+    //    .addConverterFactory(GsonConverterFactory.create())
+    //    .build()
 
-    private val apiService = retrofit.create(ApiService::class.java)
+    //private val apiService = retrofit.create(ApiService::class.java)
 
     private lateinit var queryInput: EditText
     private lateinit var placeholderMessage: TextView
@@ -101,14 +104,14 @@ class MoviesActivity : AppCompatActivity() {
             moviesList.visibility = View.GONE
             progressBar.visibility = View.VISIBLE
 
-            //apiService.findMovies("1", "25", queryInput.text.toString()).enqueue(object :
-            //apiService.randomMovie().enqueue(object :
-            apiService.findMoviesCustom(
+
+
+            /*apiService.findMovies(
                 //"name && poster && description",
                 //"1",
                 //"10",
                 queryInput.text.toString(),
-                "!null"
+                //"!null"
             ).enqueue(object :
                 Callback<MoviesSearchResponse> {
                 override fun onResponse(
@@ -142,7 +145,7 @@ class MoviesActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     showMessage(getString(R.string.something_went_wrong), t.message.toString())
                 }
-            })
+            })*/
         }
     }
 

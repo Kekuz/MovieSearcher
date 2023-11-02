@@ -1,4 +1,4 @@
-package com.example.moviesearcher
+package com.example.moviesearcher.ui.movies
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,7 +6,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.moviesearcher.models.Movie
+import com.example.moviesearcher.R
+import com.example.moviesearcher.domain.models.Movie
 
 class MovieViewHolder(parent: ViewGroup) :
     RecyclerView.ViewHolder(
