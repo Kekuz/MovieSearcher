@@ -17,30 +17,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.R
 import com.example.moviesearcher.domain.models.Movie
-import com.example.moviesearcher.data.dto.MoviesSearchResponse
-import com.example.moviesearcher.data.network.ApiService
 import com.example.moviesearcher.domain.Creator
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.example.moviesearcher.domain.api.MoviesInteractor
 
 class MoviesActivity : AppCompatActivity() {
-
-    //private val baseUrl = "https://api.kinopoisk.dev"
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
     }
-
-    //private val retrofit = Retrofit.Builder()
-    //    .baseUrl(baseUrl)
-    //    .addConverterFactory(GsonConverterFactory.create())
-    //    .build()
-
-    //private val apiService = retrofit.create(ApiService::class.java)
 
     private lateinit var queryInput: EditText
     private lateinit var placeholderMessage: TextView
@@ -104,48 +89,24 @@ class MoviesActivity : AppCompatActivity() {
             moviesList.visibility = View.GONE
             progressBar.visibility = View.VISIBLE
 
-
-
-            /*apiService.findMovies(
-                //"name && poster && description",
-                //"1",
-                //"10",
-                queryInput.text.toString(),
-                //"!null"
-            ).enqueue(object :
-                Callback<MoviesSearchResponse> {
-                override fun onResponse(
-                    call: Call<MoviesSearchResponse>,
-                    response: Response<MoviesSearchResponse>
-                ) {
-                    progressBar.visibility = View.GONE
-                    Log.e("Movies", response.raw().toString())
-                    if (response.code() == 200) {
+            Creator.provideMoviesInteractor().searchMovies(queryInput.text.toString(), object : MoviesInteractor.MoviesConsumer {
+                override fun consume(foundMovies: List<Movie>) {
+                    Log.e("Movies", foundMovies.toString())
+                    runOnUiThread{
                         movies.clear()
-                        if (response.body()?.docs?.isNotEmpty() == true) {
-                            Log.e("Movies", response.body().toString())
+                        if (foundMovies.isNotEmpty()) {
                             moviesList.visibility = View.VISIBLE
-                            movies.addAll(response.body()?.docs!!)
+                            movies.addAll(foundMovies)
                             adapter.notifyDataSetChanged()
                         }
-                        if (movies.isEmpty()) {
+                        if (foundMovies.isEmpty()) {
                             showMessage(getString(R.string.nothing_found), "")
                         } else {
                             hideMessage()
                         }
-                    } else {
-                        showMessage(
-                            getString(R.string.something_went_wrong),
-                            response.code().toString()
-                        )
                     }
                 }
-
-                override fun onFailure(call: Call<MoviesSearchResponse>, t: Throwable) {
-                    progressBar.visibility = View.GONE
-                    showMessage(getString(R.string.something_went_wrong), t.message.toString())
-                }
-            })*/
+            })
         }
     }
 
