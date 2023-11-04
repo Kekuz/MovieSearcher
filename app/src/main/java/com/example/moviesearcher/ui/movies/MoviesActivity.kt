@@ -12,10 +12,12 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.R
+import com.example.moviesearcher.databinding.ActivityMoviesBinding
 import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.domain.Creator
 import com.example.moviesearcher.domain.api.MoviesInteractor
@@ -26,11 +28,7 @@ class MoviesActivity : AppCompatActivity() {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
     }
-
-    private lateinit var queryInput: EditText
-    private lateinit var placeholderMessage: TextView
-    private lateinit var moviesList: RecyclerView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var binding: ActivityMoviesBinding
 
     private val movies = ArrayList<Movie>()
 
@@ -51,19 +49,15 @@ class MoviesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_movies)
-
-        placeholderMessage = findViewById(R.id.placeholderMessage)
-        queryInput = findViewById(R.id.queryInput)
-        moviesList = findViewById(R.id.locations)
-        progressBar = findViewById(R.id.progressBar)
+        binding = ActivityMoviesBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         adapter.movies = movies
 
-        moviesList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        moviesList.adapter = adapter
+        binding.moviesList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.moviesList.adapter = adapter
 
-        queryInput.addTextChangedListener(object : TextWatcher {
+        binding.queryInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
 
@@ -83,19 +77,19 @@ class MoviesActivity : AppCompatActivity() {
     }
 
     private fun searchRequest() {
-        if (queryInput.text.isNotEmpty()) {
+        if (binding.queryInput.text.isNotEmpty()) {
 
-            placeholderMessage.visibility = View.GONE
-            moviesList.visibility = View.GONE
-            progressBar.visibility = View.VISIBLE
+            binding.placeholderMessage.visibility = View.GONE
+            binding.moviesList.visibility = View.GONE
+            binding.progressBar.visibility = View.VISIBLE
 
-            Creator.provideMoviesInteractor().searchMovies(queryInput.text.toString(), object : MoviesInteractor.MoviesConsumer {
+            Creator.provideMoviesInteractor().searchMovies(binding.queryInput.text.toString(), object : MoviesInteractor.MoviesConsumer {
                 override fun consume(foundMovies: List<Movie>) {
                     Log.e("Movies", foundMovies.toString())
                     runOnUiThread{
                         movies.clear()
                         if (foundMovies.isNotEmpty()) {
-                            moviesList.visibility = View.VISIBLE
+                            binding.moviesList.visibility = View.VISIBLE
                             movies.addAll(foundMovies)
                             adapter.notifyDataSetChanged()
                         }
@@ -112,20 +106,20 @@ class MoviesActivity : AppCompatActivity() {
 
     private fun showMessage(text: String, additionalMessage: String) {
         if (text.isNotEmpty()) {
-            placeholderMessage.visibility = View.VISIBLE
+            binding.placeholderMessage.visibility = View.VISIBLE
             movies.clear()
             adapter.notifyDataSetChanged()
-            placeholderMessage.text = additionalMessage
+            binding.placeholderMessage.text = additionalMessage
             if (additionalMessage.isNotEmpty()) {
-                //Toast.makeText(applicationContext, additionalMessage, Toast.LENGTH_LONG) .show()
+                Toast.makeText(applicationContext, additionalMessage, Toast.LENGTH_LONG) .show()
             }
         } else {
-            placeholderMessage.visibility = View.GONE
+            binding.placeholderMessage.visibility = View.GONE
         }
     }
 
     private fun hideMessage() {
-        placeholderMessage.visibility = View.GONE
+        binding.placeholderMessage.visibility = View.GONE
     }
 
     private fun clickDebounce(): Boolean {
