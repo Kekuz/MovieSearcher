@@ -9,17 +9,13 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.R
 import com.example.moviesearcher.databinding.ActivityMoviesBinding
 import com.example.moviesearcher.domain.models.Movie
-import com.example.moviesearcher.domain.Creator
+import com.example.moviesearcher.Creator
 import com.example.moviesearcher.domain.api.MoviesInteractor
 
 class MoviesActivity : AppCompatActivity() {

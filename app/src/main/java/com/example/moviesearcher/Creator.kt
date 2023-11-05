@@ -1,4 +1,4 @@
-package com.example.moviesearcher.domain
+package com.example.moviesearcher
 
 import com.example.moviesearcher.data.MoviesRepositoryImpl
 import com.example.moviesearcher.data.network.RetrofitNetworkClient
