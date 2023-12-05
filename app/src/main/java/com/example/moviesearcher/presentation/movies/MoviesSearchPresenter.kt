@@ -7,6 +7,7 @@ import com.example.moviesearcher.util.Creator
 import com.example.moviesearcher.R
 import com.example.moviesearcher.domain.api.MoviesInteractor
 import com.example.moviesearcher.domain.models.Movie
+import com.example.moviesearcher.ui.models.MoviesState
 
 class MoviesSearchPresenter(
     private val view: MoviesView,
@@ -44,7 +45,8 @@ class MoviesSearchPresenter(
 
     private fun searchRequest(newSearchText: String) {
         if (newSearchText.isNotEmpty()) {
-            view.showLoading()
+            view.render(MoviesState.Loading)
+
             moviesInteractor.searchMovies(
                 newSearchText,
                 object : MoviesInteractor.MoviesConsumer {
@@ -57,16 +59,16 @@ class MoviesSearchPresenter(
 
                             when {
                                 errorMessage != null -> {
-                                    view.showError(context.getString(R.string.something_went_wrong))
+                                    view.render(MoviesState.Error(context.getString(R.string.something_went_wrong)))
                                     view.showToast(errorMessage)
                                 }
 
                                 movies.isEmpty() -> {
-                                    view.showEmpty(context.getString(R.string.nothing_found))
+                                    view.render(MoviesState.Empty(context.getString(R.string.nothing_found)))
                                 }
 
                                 else -> {
-                                    view.showContent(movies)
+                                    view.render(MoviesState.Content(movies))
                                 }
                             }
 

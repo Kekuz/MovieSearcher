@@ -15,6 +15,7 @@ import com.example.moviesearcher.databinding.ActivityMoviesBinding
 import com.example.moviesearcher.util.Creator
 import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.presentation.movies.MoviesView
+import com.example.moviesearcher.ui.models.MoviesState
 
 class MoviesActivity : AppCompatActivity(), MoviesView {
 
@@ -71,13 +72,22 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         moviesSearchPresenter.onDestroy()
     }
 
-    override fun showLoading() {
+    override fun render(state: MoviesState) {
+        when(state){
+            is MoviesState.Content -> showContent(state.movies)
+            is MoviesState.Empty -> showEmpty(state.message)
+            is MoviesState.Error -> showError(state.errorMessage)
+            MoviesState.Loading -> showLoading()
+        }
+    }
+
+    private fun showLoading() {
         binding.moviesList.visibility = View.GONE
         binding.placeholderMessage.visibility = View.GONE
         binding.progressBar.visibility = View.VISIBLE
     }
 
-    override fun showError(errorMessage: String) {
+    private fun showError(errorMessage: String) {
         binding.moviesList.visibility = View.GONE
         binding.placeholderMessage.visibility = View.VISIBLE
         binding.progressBar.visibility = View.GONE
@@ -85,11 +95,11 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         binding.placeholderMessage.text = errorMessage
     }
 
-    override fun showEmpty(emptyMessage: String) {
+    private fun showEmpty(emptyMessage: String) {
         showError(emptyMessage)
     }
 
-    override fun showContent(movies: List<Movie>) {
+    private fun showContent(movies: List<Movie>) {
         binding.moviesList.visibility = View.VISIBLE
         binding.placeholderMessage.visibility = View.GONE
         binding.progressBar.visibility = View.GONE
