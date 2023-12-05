@@ -18,7 +18,14 @@ class MoviesRepositoryImpl(private val networkClient: NetworkClient) : MoviesRep
 
             200 -> {
                 Resource.Success((response as MoviesSearchResponse).docs.map {
-                    Movie(it.name, Poster(it.poster.url, it.poster.previewUrl), it.description)
+                    Movie(
+                        it.name ?: "-",
+                        Poster(
+                            it.poster?.url ?: "-",
+                            it.poster?.previewUrl ?: "-"
+                        ),
+                        it.description ?: "-"
+                    )
                 })
             }
 
