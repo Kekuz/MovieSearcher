@@ -10,10 +10,12 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.moviesearcher.App
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.databinding.ActivityMoviesBinding
 import com.example.moviesearcher.util.Creator
 import com.example.moviesearcher.domain.models.Movie
+import com.example.moviesearcher.presentation.movies.MoviesSearchPresenter
 import com.example.moviesearcher.presentation.movies.MoviesView
 import com.example.moviesearcher.ui.models.MoviesState
 
@@ -22,6 +24,7 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
     }
+
     private lateinit var binding: ActivityMoviesBinding
 
 
@@ -37,10 +40,9 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
 
     private val handler = Handler(Looper.getMainLooper())
 
-    private val moviesSearchPresenter = Creator.provideMoviesSearchPresenter(this, this)
+    private var moviesSearchPresenter: MoviesSearchPresenter? = null
 
     private var textWatcher: TextWatcher? = null
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +50,18 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         binding = ActivityMoviesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.moviesList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        moviesSearchPresenter = (this.application as? App)?.moviesSearchPresenter
+
+        if (moviesSearchPresenter == null) {
+            moviesSearchPresenter = Creator.provideMoviesSearchPresenter(
+                context = applicationContext,
+            )
+            (this.application as? App)?.moviesSearchPresenter = moviesSearchPresenter
+        }
+
+
+        binding.moviesList.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.moviesList.adapter = adapter
 
         textWatcher = object : TextWatcher {
@@ -56,7 +69,7 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                moviesSearchPresenter.searchDebounce(s?.toString() ?: "")
+                moviesSearchPresenter?.searchDebounce(s?.toString() ?: "")
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -65,21 +78,54 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         textWatcher?.let { binding.queryInput.addTextChangedListener(it) }
 
     }
+    override fun onStart() {
+        super.onStart()
+        moviesSearchPresenter?.attachView(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        moviesSearchPresenter?.attachView(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        moviesSearchPresenter?.detachView()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        moviesSearchPresenter?.detachView()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        moviesSearchPresenter?.detachView()
+    }
 
     override fun onDestroy() {
         super.onDestroy()
+
         textWatcher?.let { binding.queryInput.removeTextChangedListener(it) }
-        moviesSearchPresenter.onDestroy()
+        moviesSearchPresenter?.detachView()
+        moviesSearchPresenter?.onDestroy()
+
+        if (isFinishing) {
+            // Очищаем ссылку на Presenter в Application
+            (this.application as? App)?.moviesSearchPresenter = null
+        }
     }
 
     override fun render(state: MoviesState) {
-        when(state){
+        when (state) {
             is MoviesState.Content -> showContent(state.movies)
             is MoviesState.Empty -> showEmpty(state.message)
             is MoviesState.Error -> showError(state.errorMessage)
             MoviesState.Loading -> showLoading()
         }
     }
+
+
 
     private fun showLoading() {
         binding.moviesList.visibility = View.GONE

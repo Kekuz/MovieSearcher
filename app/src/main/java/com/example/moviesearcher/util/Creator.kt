@@ -21,10 +21,11 @@ object Creator {
     }
 
     fun provideMoviesSearchPresenter(
-        moviesView: MoviesView,
         context: Context,
     ): MoviesSearchPresenter {
-        return MoviesSearchPresenter(moviesView, context)
+        return MoviesSearchPresenter(
+            context = context,
+        )
     }
 
     fun providePosterPresenter(posterView: PosterView, url:String): PosterPresenter {

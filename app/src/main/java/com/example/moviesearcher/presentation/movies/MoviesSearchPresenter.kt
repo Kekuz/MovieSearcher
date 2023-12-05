@@ -10,14 +10,22 @@ import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.ui.models.MoviesState
 
 class MoviesSearchPresenter(
-    private val view: MoviesView,
     private val context: Context,
 ) {
 
     private val moviesInteractor = Creator.provideMoviesInteractor(context)
 
-    companion object {
-        private const val SEARCH_DEBOUNCE_DELAY = 2000L
+    private var view: MoviesView? = null
+    private var state: MoviesState? = null
+    private var latestSearchText: String? = null
+
+    fun attachView(view: MoviesView) {
+        this.view = view
+        state?.let { view.render(it) }
+    }
+
+    fun detachView() {
+        this.view = null
     }
 
 
@@ -33,6 +41,11 @@ class MoviesSearchPresenter(
     }
 
     fun searchDebounce(changedText: String) {
+        if (latestSearchText == changedText) {
+            return
+        }
+        this.latestSearchText = changedText
+
         this.lastSearchText = changedText
         handler.removeCallbacks(searchRunnable)
         handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
@@ -45,7 +58,7 @@ class MoviesSearchPresenter(
 
     private fun searchRequest(newSearchText: String) {
         if (newSearchText.isNotEmpty()) {
-            view.render(MoviesState.Loading)
+            renderState(MoviesState.Loading)
 
             moviesInteractor.searchMovies(
                 newSearchText,
@@ -59,16 +72,16 @@ class MoviesSearchPresenter(
 
                             when {
                                 errorMessage != null -> {
-                                    view.render(MoviesState.Error(context.getString(R.string.something_went_wrong)))
-                                    view.showToast(errorMessage)
+                                    renderState(MoviesState.Error(context.getString(R.string.something_went_wrong)))
+                                    view?.showToast(errorMessage)
                                 }
 
                                 movies.isEmpty() -> {
-                                    view.render(MoviesState.Empty(context.getString(R.string.nothing_found)))
+                                    renderState(MoviesState.Empty(context.getString(R.string.nothing_found)))
                                 }
 
                                 else -> {
-                                    view.render(MoviesState.Content(movies))
+                                    renderState(MoviesState.Content(movies))
                                 }
                             }
 
@@ -76,5 +89,13 @@ class MoviesSearchPresenter(
                     }
                 })
         }
+    }
+
+    private fun renderState(state: MoviesState) {
+        this.state = state
+        this.view?.render(state)
+    }
+    companion object {
+        private const val SEARCH_DEBOUNCE_DELAY = 2000L
     }
 }
