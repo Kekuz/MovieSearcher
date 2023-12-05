@@ -12,8 +12,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.databinding.ActivityMoviesBinding
-import com.example.moviesearcher.Creator
-import com.example.moviesearcher.R
+import com.example.moviesearcher.util.Creator
 import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.presentation.movies.MoviesView
 
@@ -72,25 +71,31 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         moviesSearchPresenter.onDestroy()
     }
 
-    override fun showPlaceholderMessage(isVisible: Boolean) {
-        binding.placeholderMessage.visibility = if (isVisible) View.VISIBLE else View.GONE
+    override fun showLoading() {
+        binding.moviesList.visibility = View.GONE
+        binding.placeholderMessage.visibility = View.GONE
+        binding.progressBar.visibility = View.VISIBLE
     }
 
-    override fun showMoviesList(isVisible: Boolean) {
-        binding.moviesList.visibility = if (isVisible) View.VISIBLE else View.GONE
+    override fun showError(errorMessage: String) {
+        binding.moviesList.visibility = View.GONE
+        binding.placeholderMessage.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.GONE
+
+        binding.placeholderMessage.text = errorMessage
     }
 
-    override fun showProgressBar(isVisible: Boolean) {
-        binding.progressBar.visibility = if (isVisible) View.VISIBLE else View.GONE
+    override fun showEmpty(emptyMessage: String) {
+        showError(emptyMessage)
     }
 
-    override fun changePlaceholderText(newPlaceholderText: String) {
-        binding.placeholderMessage.text = newPlaceholderText
-    }
+    override fun showContent(movies: List<Movie>) {
+        binding.moviesList.visibility = View.VISIBLE
+        binding.placeholderMessage.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
 
-    override fun updateMoviesList(newMoviesList: List<Movie>) {
         adapter.movies.clear()
-        adapter.movies.addAll(newMoviesList)
+        adapter.movies.addAll(movies)
         adapter.notifyDataSetChanged()
     }
 

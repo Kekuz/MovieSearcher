@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.example.moviesearcher.Creator
+import com.example.moviesearcher.util.Creator
 import com.example.moviesearcher.R
 import com.example.moviesearcher.presentation.poster.PosterPresenter
 import com.example.moviesearcher.presentation.poster.PosterView
