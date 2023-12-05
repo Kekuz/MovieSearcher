@@ -1,7 +1,6 @@
 package com.example.moviesearcher.ui.movies
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,7 +9,6 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.moviesearcher.App
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.databinding.ActivityMoviesBinding
 import com.example.moviesearcher.util.Creator
@@ -18,11 +16,24 @@ import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.presentation.movies.MoviesSearchPresenter
 import com.example.moviesearcher.presentation.movies.MoviesView
 import com.example.moviesearcher.ui.models.MoviesState
+import moxy.MvpActivity
+import moxy.presenter.InjectPresenter
+import moxy.presenter.ProvidePresenter
 
-class MoviesActivity : AppCompatActivity(), MoviesView {
+class MoviesActivity : MvpActivity(), MoviesView {
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
+    }
+
+    @InjectPresenter
+    lateinit var moviesSearchPresenter: MoviesSearchPresenter
+
+    @ProvidePresenter
+    fun providePresenter(): MoviesSearchPresenter {
+        return Creator.provideMoviesSearchPresenter(
+            context = this.applicationContext,
+        )
     }
 
     private lateinit var binding: ActivityMoviesBinding
@@ -40,8 +51,6 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
 
     private val handler = Handler(Looper.getMainLooper())
 
-    private var moviesSearchPresenter: MoviesSearchPresenter? = null
-
     private var textWatcher: TextWatcher? = null
 
 
@@ -49,16 +58,6 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         super.onCreate(savedInstanceState)
         binding = ActivityMoviesBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        moviesSearchPresenter = (this.application as? App)?.moviesSearchPresenter
-
-        if (moviesSearchPresenter == null) {
-            moviesSearchPresenter = Creator.provideMoviesSearchPresenter(
-                context = applicationContext,
-            )
-            (this.application as? App)?.moviesSearchPresenter = moviesSearchPresenter
-        }
-
 
         binding.moviesList.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
@@ -78,42 +77,10 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         textWatcher?.let { binding.queryInput.addTextChangedListener(it) }
 
     }
-    override fun onStart() {
-        super.onStart()
-        moviesSearchPresenter?.attachView(this)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        moviesSearchPresenter?.attachView(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        moviesSearchPresenter?.detachView()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        moviesSearchPresenter?.detachView()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        moviesSearchPresenter?.detachView()
-    }
 
     override fun onDestroy() {
         super.onDestroy()
-
         textWatcher?.let { binding.queryInput.removeTextChangedListener(it) }
-        moviesSearchPresenter?.detachView()
-        moviesSearchPresenter?.onDestroy()
-
-        if (isFinishing) {
-            // Очищаем ссылку на Presenter в Application
-            (this.application as? App)?.moviesSearchPresenter = null
-        }
     }
 
     override fun render(state: MoviesState) {
@@ -155,8 +122,8 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
         adapter.notifyDataSetChanged()
     }
 
-    override fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    override fun showToast(additionalMessage: String) {
+        Toast.makeText(this, additionalMessage, Toast.LENGTH_LONG).show()
     }
 
     private fun clickDebounce(): Boolean {
