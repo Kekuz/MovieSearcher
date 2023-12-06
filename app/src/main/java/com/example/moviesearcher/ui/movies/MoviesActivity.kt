@@ -8,33 +8,24 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.databinding.ActivityMoviesBinding
-import com.example.moviesearcher.util.Creator
 import com.example.moviesearcher.domain.models.Movie
-import com.example.moviesearcher.presentation.movies.MoviesSearchPresenter
-import com.example.moviesearcher.presentation.movies.MoviesView
+import com.example.moviesearcher.presentation.movies.MoviesSearchViewModel
+import com.example.moviesearcher.presentation.movies.ToastState
 import com.example.moviesearcher.ui.models.MoviesState
-import moxy.MvpActivity
-import moxy.presenter.InjectPresenter
-import moxy.presenter.ProvidePresenter
 
-class MoviesActivity : MvpActivity(), MoviesView {
+class MoviesActivity : ComponentActivity() {
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
     }
 
-    @InjectPresenter
-    lateinit var moviesSearchPresenter: MoviesSearchPresenter
+    private lateinit var viewModel: MoviesSearchViewModel
 
-    @ProvidePresenter
-    fun providePresenter(): MoviesSearchPresenter {
-        return Creator.provideMoviesSearchPresenter(
-            context = this.applicationContext,
-        )
-    }
 
     private lateinit var binding: ActivityMoviesBinding
 
@@ -61,14 +52,31 @@ class MoviesActivity : MvpActivity(), MoviesView {
 
         binding.moviesList.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
+        viewModel = ViewModelProvider(
+            this,
+            MoviesSearchViewModel.getViewModelFactory()
+        )[MoviesSearchViewModel::class.java]
+
         binding.moviesList.adapter = adapter
+
+        viewModel.observeState().observe(this) {
+            render(it)
+        }
+
+        viewModel.observeToastState().observe(this) { toastState ->
+            if (toastState is ToastState.Show) {
+                showToast(toastState.additionalMessage)
+                viewModel.toastWasShown()
+            }
+        }
 
         textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                moviesSearchPresenter?.searchDebounce(s?.toString() ?: "")
+                viewModel.searchDebounce(s?.toString() ?: "")
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -83,7 +91,7 @@ class MoviesActivity : MvpActivity(), MoviesView {
         textWatcher?.let { binding.queryInput.removeTextChangedListener(it) }
     }
 
-    override fun render(state: MoviesState) {
+    private fun render(state: MoviesState) {
         when (state) {
             is MoviesState.Content -> showContent(state.movies)
             is MoviesState.Empty -> showEmpty(state.message)
@@ -91,7 +99,6 @@ class MoviesActivity : MvpActivity(), MoviesView {
             MoviesState.Loading -> showLoading()
         }
     }
-
 
 
     private fun showLoading() {
@@ -122,7 +129,7 @@ class MoviesActivity : MvpActivity(), MoviesView {
         adapter.notifyDataSetChanged()
     }
 
-    override fun showToast(additionalMessage: String) {
+    private fun showToast(additionalMessage: String) {
         Toast.makeText(this, additionalMessage, Toast.LENGTH_LONG).show()
     }
 
