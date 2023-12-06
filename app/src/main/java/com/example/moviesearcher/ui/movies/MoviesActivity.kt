@@ -25,18 +25,25 @@ class MoviesActivity : ComponentActivity() {
     }
 
     private lateinit var viewModel: MoviesSearchViewModel
-
-
     private lateinit var binding: ActivityMoviesBinding
 
 
-    private val adapter = MoviesAdapter {
-        if (clickDebounce()) {
-            val intent = Intent(this, PosterActivity::class.java)
-            intent.putExtra("poster", it.poster.previewUrl)
-            startActivity(intent)
+    private val adapter = MoviesAdapter(
+        object : MoviesAdapter.MovieClickListener {
+            override fun onMovieClick(movie: Movie) {
+                if (clickDebounce()) {
+                    val intent = Intent(this@MoviesActivity, PosterActivity::class.java)
+                    intent.putExtra("poster", movie.poster.previewUrl)
+                    startActivity(intent)
+                }
+            }
+
+            override fun onFavoriteToggleClick(movie: Movie) {
+                viewModel.toggleFavorite(movie)
+            }
+
         }
-    }
+    )
 
     private var isClickAllowed = true
 
