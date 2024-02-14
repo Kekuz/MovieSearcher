@@ -16,6 +16,12 @@ import com.example.moviesearcher.R
 import com.example.moviesearcher.domain.api.MoviesInteractor
 import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.ui.models.MoviesState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MoviesSearchViewModel(
     application: Application,
@@ -44,14 +50,15 @@ class MoviesSearchViewModel(
 
     private val movies = ArrayList<Movie>()
 
-    private val handler = Handler(Looper.getMainLooper())
+    //private val handler = Handler(Looper.getMainLooper())
 
     private var lastSearchText: String? = null
 
-    private val searchRunnable = Runnable {
+    /*private val searchRunnable = Runnable {
         val newSearchText = lastSearchText ?: ""
         searchRequest(newSearchText)
-    }
+    }*/
+    private var searchJob: Job? = null
 
     fun searchDebounce(changedText: String) {
         if (latestSearchText == changedText) {
@@ -60,12 +67,18 @@ class MoviesSearchViewModel(
         this.latestSearchText = changedText
 
         this.lastSearchText = changedText
-        handler.removeCallbacks(searchRunnable)
-        handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
+        searchJob?.cancel()
+        searchJob = CoroutineScope(Dispatchers.IO).launch {
+            delay(SEARCH_DEBOUNCE_DELAY)
+            searchRequest(lastSearchText ?: "")
+        }
+        //handler.removeCallbacks(searchRunnable)
+        //handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
     }
 
     override fun onCleared() {
-        handler.removeCallbacksAndMessages(searchRunnable)
+        searchJob?.cancel()
+        //handler.removeCallbacksAndMessages(searchRunnable)
     }
 
     private fun searchRequest(newSearchText: String) {

@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moviesearcher.ui.poster.PosterActivity
 import com.example.moviesearcher.databinding.ActivityMoviesBinding
@@ -17,6 +18,8 @@ import com.example.moviesearcher.domain.models.Movie
 import com.example.moviesearcher.presentation.movies.MoviesSearchViewModel
 import com.example.moviesearcher.presentation.movies.ToastState
 import com.example.moviesearcher.ui.models.MoviesState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MoviesActivity : ComponentActivity() {
 
@@ -47,7 +50,7 @@ class MoviesActivity : ComponentActivity() {
 
     private var isClickAllowed = true
 
-    private val handler = Handler(Looper.getMainLooper())
+    //private val handler = Handler(Looper.getMainLooper())
 
     private var textWatcher: TextWatcher? = null
 
@@ -144,9 +147,13 @@ class MoviesActivity : ComponentActivity() {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            handler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
+            lifecycleScope.launch {
+                delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
+            }
         }
         return current
+
     }
 
 }
